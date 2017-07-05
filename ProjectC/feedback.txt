@@ -1,0 +1,1488 @@
+============================================
+vis/result.rtx
+15:51:14_Sunday_22_May_2016
+============================================
+Feedback:
+	Your program ("TicTacToe.java") has been submitted successfully.
+
+	Compiling your program with "javac"...
+
+	Your program has been run successfully :-)
+
+	Now, it's your responsibility to test your program for correctness!
+	Here is a simple test case, and the results:
+
+============================================
+Test for input file: in1
+Expected results:				Your results:
+Welcome to Tic Tac Toe!				Welcome to Tic Tac Toe!
+
+>'createplayer' is not a valid command.		>'createplayer' is not a valid command.
+
+>Incorrect number of arguments supplied to co	>Incorrect number of arguments supplied to co
+
+>						>
+>						>
+>alphaTicTacToe,TicTacToe,Alpha,0 games,0 win	>alphaTicTacToe,TicTacToe,Alpha,0 games,0 win
+
+>alphaTicTacToe,TicTacToe,Alpha,0 games,0 win	>alphaTicTacToe,TicTacToe,Alpha,0 games,0 win
+jdawson,Dawson,Jack,0 games,0 wins,0 draws	jdawson,Dawson,Jack,0 games,0 wins,0 draws
+
+> WIN  | DRAW | GAME | USERNAME			> WIN  | DRAW | GAME | USERNAME
+   0% |   0% |  0   | alphaTicTacToe		   0% |   0% |  0   | alphaTicTacToe
+   0% |   0% |  0   | jdawson			   0% |   0% |  0   | jdawson
+
+> | | 						> | | 
+-----						-----
+ | | 						 | | 
+-----						-----
+ | | 						 | | 
+Jack's move:					Jack's move:
+ | | 						 | | 
+-----						-----
+ |O| 						 |O| 
+-----						-----
+ | | 						 | | 
+Alpha's move:					Alpha's move:
+X| | 						X| | 
+-----						-----
+ |O| 						 |O| 
+-----						-----
+ | | 						 | | 
+Jack's move:					Jack's move:
+X| | 						X| | 
+-----						-----
+ |O|O						 |O|O
+-----						-----
+ | | 						 | | 
+Alpha's move:					Alpha's move:
+X|X| 						X|X| 
+-----						-----
+ |O|O						 |O|O
+-----						-----
+ | | 						 | | 
+Jack's move:					Jack's move:
+X|X| 						X|X| 
+-----						-----
+O|O|O						O|O|O
+-----						-----
+ | | 						 | | 
+Game over. Jack won!				Game over. Jack won!
+
+> WIN  | DRAW | GAME | USERNAME			> WIN  | DRAW | GAME | USERNAME
+ 100% |   0% |  1   | jdawson			 100% |   0% |  1   | jdawson
+   0% |   0% |  1   | alphaTicTacToe		   0% |   0% |  1   | alphaTicTacToe
+
+>						>
+
+Your results seem to be CORRECT :-).
+
+============================================
+Test for input file: in2
+Expected results:				Your results:
+Welcome to Tic Tac Toe!				Welcome to Tic Tac Toe!
+
+>alphaTicTacToe,TicTacToe,Alpha,1 games,0 win	>alphaTicTacToe,TicTacToe,Alpha,1 games,0 win
+jdawson,Dawson,Jack,1 games,1 wins,0 draws	jdawson,Dawson,Jack,1 games,1 wins,0 draws
+
+>						>
+
+Your results seem to be CORRECT :-).
+
+============================================
+Test for AdvancedAIPlayer
+AdvancedAIPlayer: 6 wins, 4 draws in 10 games.
+
+
+============================================
+src/CommonConstant.java
+15:51:03_Sunday_22_May_2016
+============================================
+/*
+ * Author: Hao Yu Yeh
+ * Date: 18/05/2016
+ * Comment: project C(TicTacToe game) in COMP90041
+ */
+
+public class CommonConstant {
+	// for class TicTacToe
+	public final static int MAXARGUMENTS = 3, MINARGUMENTS = 1, NUMOFGAMEPLAYERS = 2;
+	// for class PlayerManager 
+	public final static int MAXPLAYERS = 100, MAXRANKINGPLAYERS = 10, NULL = 0, RESET = 0;
+	public final static int NOTFOUND = 0, SUCCESS = 1, PLAYEREXISTED = 2, EXCEEDMAXPLAYER = 3;
+	// for class Player
+	public final static int CLEAR = 0;
+	// for class GameManager
+	public final static int GRIDNUM = 9, OWIN = 0, XWIN = 1, DRAW = 2, CONTINUE = 3, OCCUPIED = 4;
+	public final static int OUTOFBOUND = 5;
+	public final static char O = 'O', X = 'X';
+	// for class AdvancedAIPlayer
+	public final static int SCOREFORWIN = 10;
+	public final static char DRAWCHAR = 'D';
+}
+============================================
+src/GameManager.java
+15:51:03_Sunday_22_May_2016
+============================================
+/*
+ * Author: Hao Yu Yeh
+ * Date: 18/05/2016
+ * Comment: project C(TicTacToe game) in COMP90041
+ */
+
+import java.lang.Math;
+
+public class GameManager {
+	private char[][] chessBoard;
+	private String gridLine = "";
+	private int chessBoardCol;
+
+	public GameManager() {
+		chessBoardCol = (int) Math.sqrt(CommonConstant.GRIDNUM);
+		chessBoard = new char[chessBoardCol][chessBoardCol];		
+		// according the size of chess board to generate the horizontal grid line
+		for (int i = 0; i < (2 * chessBoardCol - 1); i++) {
+			gridLine += "-";
+		}
+	}
+	// construct an empty chess board
+	private void initial(){
+		for (int i = 0; i < chessBoardCol; i++) {
+			for (int j = 0; j < chessBoardCol; j++) {
+				chessBoard[i][j] = ' ';
+			}
+		}
+	}
+	// playing Tic Tac Toe game
+	public void playGame(Player p1, Player p2) {
+		initial();
+		printGrid();
+		int type = CommonConstant.CONTINUE, count = 1;
+		while (true) {
+			switch (type) {
+			case CommonConstant.OWIN:
+				System.out.println("Game over. " + p1.getGivenName() + " won!");
+				updatePlayerStats(p1, p2, CommonConstant.OWIN);
+				return;
+			case CommonConstant.XWIN:
+				System.out.println("Game over. " + p2.getGivenName() + " won!");
+				updatePlayerStats(p1, p2, CommonConstant.XWIN);
+				return;
+			case CommonConstant.DRAW:
+				System.out.println("Game over. It was a draw!");
+				updatePlayerStats(p1, p2, CommonConstant.DRAW);
+				return;
+			default:
+			case CommonConstant.CONTINUE:
+				// player1's turn
+				if ((count % 2) == 1) {
+					makingMove( p1, CommonConstant.O );
+					type = getGameState(count);
+				} else {
+					makingMove( p2, CommonConstant.X );
+					type = getGameState(count);
+				}
+				break;
+			}
+			printGrid();
+			count++;
+		}
+	}
+	// print the chess board
+	private void printGrid() {
+		for (int i = 0; i < chessBoardCol; i++) {
+			String temp = "";
+			for (int j = 0; j < chessBoardCol; j++) {
+				temp += chessBoard[i][j];
+				// adding vertical grid line
+				if (j < (chessBoardCol - 1)) {
+					temp += "|";
+				}
+			}
+			System.out.println(temp);
+			// adding horizontal grid line
+			if (i < (chessBoardCol - 1)) {
+				System.out.println(gridLine);
+			}
+		}
+	}
+	// making moves
+	private void makingMove( Player p, char symbol ){
+		System.out.println(p.getGivenName() + "'s move:");
+		Move move;
+		move = p.makeMove(chessBoard);
+		// checking the validation of movements and giving the suggestion.
+		int type;
+		while( true ){
+			type = checkValidMove( move.getRow(), move.getColumn() );
+			if( type == CommonConstant.SUCCESS ){
+				break;
+			}else if( type == CommonConstant.OCCUPIED ){
+				System.out.println( ErrorMessage.OCCUPIEDCELL );
+				System.out.println(p.getGivenName() + "'s move:");
+				move = p.makeMove(chessBoard);
+			}else{
+				System.out.println( ErrorMessage.OUTOFBOUNDARY );
+				System.out.println(p.getGivenName() + "'s move:");
+				move = p.makeMove(chessBoard);
+			}
+		}
+		chessBoard[move.getRow()][move.getColumn()] = symbol;
+	}
+	// checking the validation of movements
+	private int checkValidMove( int row, int col ){
+		// check if the position is inside the boundary
+		if( ( row >= 0 ) && ( row < chessBoardCol ) && ( col >= 0 ) && ( col < chessBoardCol ) ){
+			// check if the grid is occupied
+			if( chessBoard[row][col] == ' ' ){
+				return CommonConstant.SUCCESS;
+			}else{
+				return CommonConstant.OCCUPIED;
+			}
+		}else{
+			return CommonConstant.OUTOFBOUND;
+		} 
+	}
+	// checking if there is a player satisfying the winning criteria
+	private boolean checkWinner(char target) {
+		char tempVertival, tempHorizontal, tempDiagonal1 = chessBoard[0][0],
+				tempDiagonal2 = chessBoard[0][chessBoardCol - 1];
+		for (int i = 0; i < chessBoardCol; i++) {
+			tempHorizontal = chessBoard[i][0];
+			tempVertival = chessBoard[0][i];
+			/*
+			 * check if there is a consecutive character 'target' filled in all grids of one 
+			 * horizontal line
+			 */
+			if (tempHorizontal == target) {
+				for (int j = 1; j < chessBoardCol; j++) {
+					tempHorizontal &= chessBoard[i][j];
+					/*
+					 * stop checking once there is a grid which is not filled with the 
+					 * character 'target'
+					 */
+					if (tempHorizontal != target) {
+						break;
+					} else if ((j == (chessBoardCol - 1)) && (tempHorizontal == target)) {
+						return true;
+					}
+				}
+			}
+			/*
+			 * check if there is a consecutive character 'target' filled in all grids of one 
+			 * vertical line
+			 */
+			if (tempVertival == target) {
+				for (int j = 1; j < chessBoardCol; j++) {
+					tempVertival &= chessBoard[j][i];
+					if (tempVertival != target) {
+						break;
+					} else if ((j == (chessBoardCol - 1)) && (tempVertival == target)) {
+						return true;
+					}
+				}
+			}
+			/*
+			 * check if there is a consecutive character 'target' filled in all grids of one 
+			 * diagonal line
+			 */
+			if (i > 0) {
+				tempDiagonal1 &= chessBoard[i][i];
+				tempDiagonal2 &= chessBoard[i][chessBoardCol - 1 - i];
+			}
+		}
+		if (tempDiagonal1 == target) {
+			return true;
+		} else if (tempDiagonal2 == target) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+	// determine the current status of the game, such as who wins, draw or continue
+	private int getGameState(int count) {
+		if (checkWinner(CommonConstant.O)) {
+			return CommonConstant.OWIN;
+		} else if (checkWinner(CommonConstant.X)) {
+			return CommonConstant.XWIN;
+		} else if (count == CommonConstant.GRIDNUM) {
+			return CommonConstant.DRAW;
+		} else {
+			return CommonConstant.CONTINUE;
+		}
+	}
+	// update the statistics of two players
+	private void updatePlayerStats(Player p1, Player p2, int result){
+		switch(result){
+		case CommonConstant.OWIN:
+			p1.setGamePlayed(1);
+			p1.setGameWon(1);
+			p2.setGamePlayed(1);
+			break;
+		case CommonConstant.XWIN:
+			p2.setGamePlayed(1);
+			p2.setGameWon(1);
+			p1.setGamePlayed(1);
+			break;
+		case CommonConstant.DRAW:
+			p1.setGamePlayed(1);
+			p1.setGameDrawn(1);
+			p2.setGamePlayed(1);
+			p2.setGameDrawn(1);
+			break;
+		default:
+			break;
+		}
+	}
+}============================================
+src/InvalidCommandException.java
+15:51:03_Sunday_22_May_2016
+============================================
+/*
+ * Author: Hao Yu Yeh
+ * Date: 18/05/2016
+ * Comment: project C(TicTacToe game) in COMP90041
+ */
+
+public class InvalidCommandException extends Exception{
+	private static final long serialVersionUID = 1L;
+	
+	public InvalidCommandException(){
+		super("InvalidCommandException");
+	}
+	public InvalidCommandException( String msg ){
+		super(msg);
+	}
+}
+============================================
+src/PlayerManager.java
+15:51:03_Sunday_22_May_2016
+============================================
+/*
+ * Author: Hao Yu Yeh
+ * Date: 18/05/2016
+ * Comment: project C(TicTacToe game) in COMP90041
+ */
+
+import java.util.Arrays;
+import java.lang.String;
+import java.io.File;
+import java.util.Scanner;
+import java.io.FileInputStream;
+import java.io.PrintWriter;
+import java.io.FileOutputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.lang.Math;
+
+public class PlayerManager {
+	// keep the record of the position of the next new player
+	private int newPlayerPos;
+	public Player[] playerTable;
+
+	public PlayerManager() {
+		newPlayerPos = 0;
+		playerTable = new Player[CommonConstant.MAXPLAYERS];
+	}
+	/*
+	 * use for searching particular player if player exists, the function will
+	 * return the position index. otherwise, it will return a negative value
+	 */
+	public int searchPlayer(String userName) {
+		HumanPlayer temp = new HumanPlayer();
+		temp.setUserName(userName);
+		// searching in the existed players(the index of the last element is exclusive)
+		int exist = Arrays.binarySearch(playerTable, 0, newPlayerPos, temp, 
+										Player.playerUserNameComparator);
+		return exist;
+	}
+	/*
+	 * if the user name has not been used or the number of existed players
+	 * doesn't exceed the limit of players, it would add the new player into
+	 * playerTable.
+	 */
+	public void addPlayer(String userName, String familyName, String givenName) {
+		int exist = searchPlayer(userName);
+		// user does not exist
+		if(exist < CommonConstant.NOTFOUND){
+			if(newPlayerPos < CommonConstant.MAXPLAYERS){
+				HumanPlayer temp = new HumanPlayer();
+				temp.setPlayerType("human");
+				temp.setUserName(userName);
+				temp.setFamilyName(familyName);
+				temp.setGivenName(givenName);
+				playerTable[newPlayerPos] = temp;
+				newPlayerPos++;
+				// binary search should be applied in a sorted array
+				Arrays.sort(playerTable, 0, newPlayerPos, Player.playerUserNameComparator);
+			}else{
+				System.out.println(ErrorMessage.EXCEEDMAX);
+			}
+		}else{
+			System.out.println(ErrorMessage.EXISTALREADY);
+		}
+	}
+	/*
+	 * if the user name has not been used or the number of existed players
+	 * doesn't exceed the limit of players, it would add the new AI player into
+	 * playerTable.
+	 */
+	public void addAIPlayer(String userName, String familyName, String givenName) {
+		int exist = searchPlayer(userName);
+		// user does not exist
+		if(exist < CommonConstant.NOTFOUND){
+			if(newPlayerPos < CommonConstant.MAXPLAYERS){
+				AIPlayer temp = new AIPlayer();
+				temp.setPlayerType("AI");
+				temp.setUserName(userName);
+				temp.setFamilyName(familyName);
+				temp.setGivenName(givenName);
+				playerTable[newPlayerPos] = temp;
+				newPlayerPos++;
+				// binary search should be applied in a sorted array
+				Arrays.sort(playerTable, 0, newPlayerPos, Player.playerUserNameComparator);
+			}else{
+				System.out.println(ErrorMessage.EXCEEDMAX);
+			}
+		}else{
+			System.out.println(ErrorMessage.EXISTALREADY);
+		}
+	}
+	/*
+	 * if the user name has been found, it would delete the user.
+	 */
+	public void removePlayer(String userName) {
+		int exist = searchPlayer(userName);
+		// not found in the array
+		if(exist < CommonConstant.NOTFOUND){
+			System.out.println(ErrorMessage.NOTEXIST);
+		}else{
+			// move the last element to the position of the deleted element
+			playerTable[exist] = playerTable[newPlayerPos - 1];
+			newPlayerPos--;
+			// binary search should be applied in a sorted array
+			Arrays.sort(playerTable, 0, newPlayerPos, HumanPlayer.playerUserNameComparator);
+		}
+	}
+	/*
+	 * it would remove all the users.
+	 */
+	public void removeAllPlayers() {
+		newPlayerPos = 0;
+	}
+	/*
+	 * if the user name has been found, it would modify the info of the user.
+	 */
+	public void editPlayer(String userName, String familyName, String givenName) {
+		int exist = searchPlayer(userName);
+		if(exist < CommonConstant.NOTFOUND){
+			System.out.println(ErrorMessage.NOTEXIST);
+		}else{
+			playerTable[exist].setFamilyName(familyName);
+			playerTable[exist].setGivenName(givenName);
+		}
+	}
+	/*
+	 * if the user name has been found, it would reset the game stats of the
+	 * user.
+	 */
+	public void resetPlayerStats(String userName) {
+		int exist = searchPlayer(userName);
+		if(exist < CommonConstant.NOTFOUND){
+			System.out.println(ErrorMessage.NOTEXIST);
+		}else{
+			playerTable[exist].setGamePlayed(CommonConstant.RESET);
+			playerTable[exist].setGameWon(CommonConstant.RESET);
+			playerTable[exist].setGameDrawn(CommonConstant.RESET);
+		}
+	}
+	/*
+	 * it would remove the game stats of all users.
+	 */
+	public void resetAllStats() {
+		for (int i = 0; i < newPlayerPos; i++) {
+			playerTable[i].setGamePlayed(CommonConstant.RESET);
+			playerTable[i].setGameWon(CommonConstant.RESET);
+			playerTable[i].setGameDrawn(CommonConstant.RESET);
+		}
+	}
+	/*
+	 * if the user name has been found, it would display the info of the user.
+	 */
+	public void displayPlayer(String userName) {
+		int exist = searchPlayer(userName);
+		if (exist < CommonConstant.NOTFOUND) {
+			System.out.println(ErrorMessage.NOTEXIST);
+		} else {
+			System.out.println(playerTable[exist].getUserName() + "," + 
+							   playerTable[exist].getFamilyName() + "," + 
+							   playerTable[exist].getGivenName() + "," + 
+							   playerTable[exist].getGamePlayed() + " games" + "," + 
+							   playerTable[exist].getGameWon() + " wins" + "," + 
+							   playerTable[exist].getGameDrawn() + " draws");
+		}
+	}
+	/*
+	 * it would display all users.
+	 */
+	public void displayAllPlayer() {
+		for (int i = 0; i < newPlayerPos; i++) {
+			System.out.println(playerTable[i].getUserName() + "," + 
+							   playerTable[i].getFamilyName() + "," + 
+							   playerTable[i].getGivenName() + "," + 
+							   playerTable[i].getGamePlayed() + " games" + "," + 
+							   playerTable[i].getGameWon() + " wins" + "," + 
+							   playerTable[i].getGameDrawn() + " draws");
+		}
+	}
+	/*
+	 * display top MAXRANKINGPLAYERS players, if the number of players is
+	 * greater or equal to MAXRANKINGPLAYERS. otherwise, display all players.
+	 */
+	public void displayRanking() {
+		// calculating the win and draw rate
+		for (int i = 0; i < newPlayerPos; i++) {
+			if (playerTable[i].getGamePlayed() == 0) {
+				playerTable[i].setWinRate(0);
+				playerTable[i].setDrawRate(0);
+			} else {
+				// convert to the format of percentage
+				playerTable[i].setWinRate(100.0 * (double)playerTable[i].getGameWon() / 
+										  (double)playerTable[i].getGamePlayed());
+				playerTable[i].setDrawRate(100.0 * (double)playerTable[i].getGameDrawn() / 
+										   (double)playerTable[i].getGamePlayed());
+			}
+		}
+		/*
+		 * after the three sorting, it can break ties first by draw and then by
+		 * username alphabetically
+		 */
+		Arrays.sort(playerTable, 0, newPlayerPos, Player.playerUserNameComparator);
+		Arrays.sort(playerTable, 0, newPlayerPos, Player.playerDrawRateComparator);
+		Arrays.sort(playerTable, 0, newPlayerPos, Player.playerWinRateComparator);
+		System.out.println(" WIN  | DRAW | GAME | USERNAME");
+		if (newPlayerPos >= CommonConstant.MAXRANKINGPLAYERS) {
+			for (int i = 0; i < CommonConstant.MAXRANKINGPLAYERS; i++) {
+				System.out.println(String.format(" %3d%% | %3d%% | %2d   | %s", 
+												 Math.round(playerTable[i].getWinRate()),
+												 Math.round(playerTable[i].getDrawRate()), 
+												 playerTable[i].getGamePlayed(),
+												 playerTable[i].getUserName()));
+			}
+		} else {
+			for (int i = 0; i < newPlayerPos; i++) {
+				System.out.println(String.format(" %3d%% | %3d%% | %2d   | %s", 
+												 Math.round(playerTable[i].getWinRate()),
+												 Math.round(playerTable[i].getDrawRate()), 
+												 playerTable[i].getGamePlayed(),
+												 playerTable[i].getUserName()));
+			}
+		}
+		// other functions need an array sorted by user name
+		Arrays.sort(playerTable, 0, newPlayerPos, Player.playerUserNameComparator);
+	}
+	/*
+	 * store all the existed game stats into a .dat file
+	 */
+	public void storeStats(){
+		try{
+			PrintWriter write;
+			write = new PrintWriter(new FileOutputStream("players.dat"));
+			for( int i = 0; i < newPlayerPos; i++ ){
+				write.println(playerTable[i].getPlayerType() + " " +
+							  playerTable[i].getUserName() + "," + 
+							  playerTable[i].getFamilyName() + "," + 
+							  playerTable[i].getGivenName() + " " +
+							  playerTable[i].getGamePlayed() + "," + 
+							  playerTable[i].getGameWon() + "," +
+							  playerTable[i].getGameDrawn());
+			}
+			write.close();
+		}
+		catch(FileNotFoundException e){
+			
+		}
+	}
+	/*
+	 * set all stats of one player
+	 */
+	private void setPlayerData( String playerData ){
+		String[] stats, content;
+		stats = playerData.split(" ");		
+		if( stats[0].equals("AI") ){
+			AIPlayer temp = new AIPlayer();
+			playerTable[newPlayerPos] = temp;
+			playerTable[newPlayerPos].setPlayerType("AI");
+		}
+		else{
+			HumanPlayer temp = new HumanPlayer();
+			playerTable[newPlayerPos] = temp;
+			playerTable[newPlayerPos].setPlayerType("human");
+		}
+		content = stats[1].split(",");
+		playerTable[newPlayerPos].setUserName(content[0]);
+		playerTable[newPlayerPos].setFamilyName(content[1]);
+		playerTable[newPlayerPos].setGivenName(content[2]);
+		content = stats[2].split(",");
+		playerTable[newPlayerPos].setGamePlayed(Integer.parseInt(content[0]));
+		playerTable[newPlayerPos].setGameWon(Integer.parseInt(content[1]));
+		playerTable[newPlayerPos].setGameDrawn(Integer.parseInt(content[2]));		
+	}
+	/*
+	 * restore all the game stats
+	 */
+	public void restoreStats(){
+		try{
+			Scanner read;
+			read = new Scanner(new FileInputStream("players.dat"));
+			String str = "";			
+			// read all the data in the file
+			while( read.hasNextLine() ){
+				str = read.nextLine();
+				setPlayerData(str);
+				newPlayerPos++;
+			}
+			read.close();
+		}
+		catch(FileNotFoundException e){
+			// because players.dat is not existed, it should create one
+			File f = new File("players.dat");
+			try{
+				f.createNewFile();
+			} 
+			catch(IOException e1){
+			}
+		}
+	}
+}============================================
+src/AIPlayer.java
+15:51:03_Sunday_22_May_2016
+============================================
+/*
+ * Author: Hao Yu Yeh
+ * Date: 18/05/2016
+ * Comment: project C(TicTacToe game) in COMP90041
+ */
+
+public class AIPlayer extends Player{
+	public AIPlayer(){
+		super();
+	}
+	/*
+	 * making move by searching empty grid in a raster scan way
+	 */
+	public Move makeMove(char[][] gameBoard){
+		Move move = new Move();
+		outer_loop:
+		for( int i = 0; i < gameBoard.length; i++ ){
+			for( int j = 0; j < gameBoard[0].length; j++ ){
+				if( gameBoard[i][j] == ' ' ){
+					move.setRow(i);
+					move.setColumn(j);
+					break outer_loop;
+				}
+			}
+		}
+		return move;
+	}
+}
+============================================
+src/AdvancedAIPlayer.java
+15:51:03_Sunday_22_May_2016
+============================================
+
+/*
+ * Author: Hao Yu Yeh
+ * Date: 18/05/2016
+ * Comment: project C(TicTacToe game) in COMP90041
+ */
+
+import java.util.ArrayList;
+import java.util.Collections;
+
+public class AdvancedAIPlayer extends Player {
+	private int chessBoardCol, emptyGrids, occupiedGrids;
+	// the depth that is this move located
+	private int level;
+	private char player, opponent;
+
+	public AdvancedAIPlayer() {
+		super();
+		chessBoardCol = (int) Math.sqrt(CommonConstant.GRIDNUM);
+	}
+	/*
+	 * making the best move
+	 */
+	public Move makeMove(char[][] gameBoard) {		
+		// check player's symbol
+		emptyGrids = 0;
+		for (int i = 0; i < chessBoardCol; i++) {
+			for (int j = 0; j < chessBoardCol; j++) {
+				if (gameBoard[i][j] == ' ') {
+					emptyGrids++;
+				}
+			}
+		}
+		occupiedGrids = CommonConstant.GRIDNUM - emptyGrids;
+		if ((emptyGrids % 2) == 1) {
+			player = CommonConstant.O;
+			opponent = CommonConstant.X;
+		} else {
+			player = CommonConstant.X;
+			opponent = CommonConstant.O;
+		}
+		// calculate the score of each possible move at this stage
+		char[][] temp;
+		ArrayList<Integer> score = new ArrayList<Integer>();
+		ArrayList<Move> move = new ArrayList<Move>();
+		level = 1;
+		for (int i = 0; i < chessBoardCol; i++) {
+			for (int j = 0; j < chessBoardCol; j++) {
+				if (gameBoard[i][j] == ' ') {
+					temp = copy2DArray(gameBoard);
+					temp[i][j] = player;
+					score.add(minMax(temp, occupiedGrids + 1, level + 1));
+					Move tMove = new Move(i,j);
+					move.add(tMove);
+				}
+			}
+		}
+		// choose the best move
+		int index = 0, max = score.get(0);
+		for( int i = 1; i < score.size(); i++ ){
+			if( score.get(i) > max ){
+				max = score.get(i);
+				index = i;
+			}
+		}
+		return move.get(index);
+	}
+	/*
+	 * copy a 2D array
+	 */
+	private char[][] copy2DArray(char[][] gameBoard){
+		char[][] temp = new char[gameBoard.length][];
+		for( int i = 0; i < gameBoard.length; i++ ){
+			temp[i] = gameBoard[i].clone();
+		}
+		return temp;
+	}
+	/*
+	 * using miniMax algorithm to calculate weights for each possible move to choose a best move
+	 */
+	private int minMax(char[][] gameBoard, int oGrids, int lv) {
+		ArrayList<Integer> score = new ArrayList<Integer>();
+		char[][] temp;
+		char activePlayer;
+		if ((lv % 2) == 1) {
+			activePlayer = player;
+		} else {
+			activePlayer = opponent;
+		}
+		/*
+		 * check if game is over
+		 * and return score when game is over
+		 */
+		int result = getGameState(oGrids, gameBoard);
+		switch (result) {
+		case CommonConstant.OWIN:
+			if (player == CommonConstant.O) {
+				return score(player, lv);
+			} else {
+				return score(opponent, lv);
+			}
+		case CommonConstant.XWIN:
+			if (player == CommonConstant.X) {
+				return score(player, lv);
+			} else {
+				return score(opponent, lv);
+			}
+		case CommonConstant.DRAW:
+			return score(CommonConstant.DRAWCHAR, lv);
+		default:
+		case CommonConstant.CONTINUE:
+			for (int i = 0; i < chessBoardCol; i++) {
+				for (int j = 0; j < chessBoardCol; j++) {
+					if (gameBoard[i][j] == ' ') {
+						temp = copy2DArray(gameBoard);
+						temp[i][j] = activePlayer;	
+						score.add(minMax(temp, oGrids + 1, lv + 1));
+					}
+				}
+			}
+			// choose the best score
+			if (activePlayer == player) {
+				// return the max score(because player try to maximize the possibility of winning)
+				Collections.sort(score);
+				return score.get(score.size() - 1);
+			} else {
+				/* 
+				 * return the min score(because the opponent try to interfere with the winning 
+				 * of player)
+				 */
+				Collections.sort(score);
+				return score.get(0);
+			}
+		}		
+	}
+	/*
+	 * checking if there is a player satisfying the winning criteria
+	 */
+	private boolean checkWinner(char target, char[][] chessBoard) {
+		char tempVertival, tempHorizontal, tempDiagonal1 = chessBoard[0][0],
+				tempDiagonal2 = chessBoard[0][chessBoardCol - 1];
+		for (int i = 0; i < chessBoardCol; i++) {
+			tempHorizontal = chessBoard[i][0];
+			tempVertival = chessBoard[0][i];
+			/*
+			 * check if there is a consecutive character 'target' filled in all
+			 * grids of one horizontal line
+			 */
+			if (tempHorizontal == target) {
+				for (int j = 1; j < chessBoardCol; j++) {
+					tempHorizontal &= chessBoard[i][j];
+					/*
+					 * stop checking once there is a grid which is not filled
+					 * with the character 'target'
+					 */
+					if (tempHorizontal != target) {
+						break;
+					} else if ((j == (chessBoardCol - 1)) && (tempHorizontal == target)) {
+						return true;
+					}
+				}
+			}
+			/*
+			 * check if there is a consecutive character 'target' filled in all
+			 * grids of one vertical line
+			 */
+			if (tempVertival == target) {
+				for (int j = 1; j < chessBoardCol; j++) {
+					tempVertival &= chessBoard[j][i];
+					if (tempVertival != target) {
+						break;
+					} else if ((j == (chessBoardCol - 1)) && (tempVertival == target)) {
+						return true;
+					}
+				}
+			}
+			/*
+			 * check if there is a consecutive character 'target' filled in all
+			 * grids of one diagonal line
+			 */
+			if (i > 0) {
+				tempDiagonal1 &= chessBoard[i][i];
+				tempDiagonal2 &= chessBoard[i][chessBoardCol - 1 - i];
+			}
+		}
+		if (tempDiagonal1 == target) {
+			return true;
+		} else if (tempDiagonal2 == target) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+	/*
+	 * determine the current status of the game, such as who wins, draw or continue
+	 */
+	private int getGameState(int count, char[][] gameBoard) {
+		if (checkWinner(CommonConstant.O, gameBoard)) {
+			return CommonConstant.OWIN;
+		} else if (checkWinner(CommonConstant.X, gameBoard)) {
+			return CommonConstant.XWIN;
+		} else if (count == CommonConstant.GRIDNUM) {
+			return CommonConstant.DRAW;
+		} else {
+			return CommonConstant.CONTINUE;
+		}
+	}
+	/*
+	 * calculating the score according the ID of winner and the depth of the move
+	 */
+	private int score(char winner, int lv) {
+		if (winner == player) {
+			return CommonConstant.SCOREFORWIN - lv;
+		} else if (winner == opponent) {
+			return lv - CommonConstant.SCOREFORWIN;
+		} else {
+			return 0;
+		}
+	}
+}
+============================================
+src/TicTacToe.java
+15:51:03_Sunday_22_May_2016
+============================================
+/*
+ * Author: Hao Yu Yeh
+ * Date: 18/05/2016
+ * Comment: project C(TicTacToe game) in COMP90041
+ */
+
+import java.util.Scanner;
+
+public class TicTacToe {
+	public static Scanner keyboard;
+	private PlayerManager currentPlayers;
+	private GameManager currentGame;
+	
+	public TicTacToe(){
+		keyboard = new Scanner(System.in);
+		currentPlayers = new PlayerManager();
+		currentGame = new GameManager();
+	}
+	// restore game data such as player stats
+	private void initial(){
+		currentPlayers.restoreStats();
+	}
+	// start a game system
+	public void run(){
+		initial();
+		System.out.println("Welcome to Tic Tac Toe!");
+		while( true ){
+			incomingCommand();
+			processCommand();
+		}		
+	}
+	// receiving commands
+	private void incomingCommand(){
+		System.out.println();
+		System.out.print(">");
+	}
+	// processing received commands
+	private void processCommand(){
+		String commandLine = "";
+		commandLine = keyboard.nextLine();
+		String[] commands;
+		commands = commandLine.split(" ");
+		int length = commands.length;
+		try{
+			switch( commands[0] ){
+			case Commands.ADDPLAYER:
+				if( length == CommonConstant.MINARGUMENTS ){
+					addPlayer( "" );
+				}else{
+					addPlayer( commands[1] );
+				}				
+				break;
+			case Commands.ADDAIPLAYER:
+				if( length == CommonConstant.MINARGUMENTS ){
+					addAIPlayer( "" );
+				}else{
+					addAIPlayer( commands[1] );
+				}				
+				break;
+			case Commands.DELETEPLAYER: 
+				if( length == CommonConstant.MINARGUMENTS ){
+					deletePlayer( "" );
+				}else{
+					deletePlayer( commands[1] );
+				}				
+				break;
+			case Commands.EDITPLAYER: 
+				if( length == CommonConstant.MINARGUMENTS ){
+					editPlayer( "" );
+				}else{
+					editPlayer( commands[1] );
+				}				
+				break;
+			case Commands.RESETSTATS:
+				if( length == 1 ){
+					resetStats( "" );
+				}else{
+					resetStats( commands[1] );
+				}				
+				break;
+			case Commands.DISPLAYPLAYER:
+				if( length == CommonConstant.MINARGUMENTS ){
+					displayPlayer( "" );
+				}else{
+					displayPlayer( commands[1] );
+				}				
+				break;
+			case Commands.SHOWRANKING:
+				if( length == CommonConstant.MINARGUMENTS ){
+					showRanking();
+				}else{
+					throw new InvalidArgumentsException("Incorrect number of arguments supplied to"
+							+ " command." );
+				}				
+				break;
+			case Commands.PLAY:
+				if( length == CommonConstant.MINARGUMENTS ){
+					play( "" );
+				}else{
+					play( commands[1] );
+				}				
+				break;
+			case Commands.EXIT:
+				if( length == CommonConstant.MINARGUMENTS ){
+					exit();
+				}else{
+					throw new InvalidArgumentsException("Incorrect number of arguments supplied to"
+							+ " command." );
+				}				
+				break;
+			// throw an invalid command exception
+			default: 
+				throw new InvalidCommandException("'" + commands[0] + "'" + " is not a valid "
+						+ "command." );
+			}
+		}
+		catch(InvalidCommandException e){
+			System.out.println( e.getMessage() );
+		}
+		catch(InvalidArgumentsException e){
+			System.out.println( e.getMessage() );
+		}
+	}
+	// adding a new user
+	private void addPlayer( String remainedCommand ){
+		try{
+			if( remainedCommand == "" ){
+				throw new InvalidArgumentsException("Incorrect number of arguments supplied to"
+						+ " command." );
+			}else{
+				String[] commands;
+				// format of remained command is username,family_name,given_name
+				commands = remainedCommand.split(",");		
+				if( commands.length >= CommonConstant.MAXARGUMENTS ){
+					currentPlayers.addPlayer( commands[0], commands[1], commands[2] );
+				}else{
+					throw new InvalidArgumentsException("Incorrect number of arguments supplied to"
+							+ " command." );
+				}
+			}
+		}
+		catch(InvalidArgumentsException e){
+			System.out.println( e.getMessage() );
+		}		
+	}
+	// adding a AI user
+	private void addAIPlayer( String remainedCommand ){
+		try{
+			if( remainedCommand == "" ){
+				throw new InvalidArgumentsException("Incorrect number of arguments supplied to"
+							+ " command." );
+			}else{
+				String[] commands;
+				// format of remained command is username,family_name,given_name
+				commands = remainedCommand.split(",");		
+				if( commands.length >= CommonConstant.MAXARGUMENTS ){
+					currentPlayers.addAIPlayer( commands[0], commands[1], commands[2] );
+				}else{
+					throw new InvalidArgumentsException("Incorrect number of arguments supplied to"
+							+ " command." );
+				}
+			}
+		}
+		catch(InvalidArgumentsException e){
+			System.out.println( e.getMessage() );
+		}
+	}
+	// edit the name of user
+	private void editPlayer( String remainedCommand ){
+		try{
+			if( remainedCommand == "" ){
+				throw new InvalidArgumentsException("Incorrect number of arguments supplied to"
+						+ " command." );
+			}else{
+				String[] commands;
+				// format of remained command is username,new_family_name,new_given_name
+				commands = remainedCommand.split(",");		
+				if( commands.length >= CommonConstant.MAXARGUMENTS ){
+					currentPlayers.editPlayer( commands[0], commands[1], commands[2] );
+				}else{
+					throw new InvalidArgumentsException("Incorrect number of arguments supplied to"
+							+ " command." );
+				}
+			}
+		}
+		catch(InvalidArgumentsException e){
+			System.out.println( e.getMessage() );
+		}
+	}
+	// delete players from game system
+	private void deletePlayer( String remainedCommand ){
+		if( remainedCommand == "" ){
+			System.out.println( "Are you sure you want to remove all players? (y/n)" );
+			if( keyboard.nextLine().compareTo("y") == 0 ){
+				currentPlayers.removeAllPlayers();
+			}
+		}else{
+			currentPlayers.removePlayer( remainedCommand );
+		}
+	}
+	// clear the statistics of players
+	private void resetStats( String remainedCommand ){
+		if( remainedCommand == "" ){
+			System.out.println( "Are you sure you want to reset all player statistics? (y/n)" );
+			if( keyboard.nextLine().compareTo("y") == 0 ){
+				currentPlayers.resetAllStats();
+			}
+		}else{
+			currentPlayers.resetPlayerStats( remainedCommand );
+		}
+	}
+	// display the info of players
+	private void displayPlayer( String remainedCommand ){
+		if( remainedCommand == "" ){
+			currentPlayers.displayAllPlayer();
+		}else{
+			currentPlayers.displayPlayer( remainedCommand );
+		}
+	}
+	// show the ranking of existed users
+	private void showRanking(){
+		currentPlayers.displayRanking();
+	}
+	// play a Tic Tac Toe game
+	private void play( String remainedCommand ){
+		try{
+			if( remainedCommand == "" ){
+				throw new InvalidArgumentsException("Incorrect number of arguments supplied to"
+						+ " command." );
+			}else{
+				String[] commands;
+				// format of remained command is username1,username2
+				commands = remainedCommand.split(",");		
+				if( commands.length >= CommonConstant.NUMOFGAMEPLAYERS ){
+					/* 
+					 * checking the validation of the usernames.
+					 * if the users don't exist, the search function will return a negative value
+					 */
+					int p1Pos = currentPlayers.searchPlayer( commands[0] ), 
+						p2Pos = currentPlayers.searchPlayer( commands[1] );
+					if( ( p1Pos >= 0 ) && ( p2Pos >= 0 ) ){
+						
+						currentGame.playGame( currentPlayers.playerTable[p1Pos], 
+											  currentPlayers.playerTable[p2Pos]);
+					}else{
+						System.out.println( ErrorMessage.WRONGUSER );
+					}
+				}else{
+					throw new InvalidArgumentsException("Incorrect number of arguments supplied to"
+							+ " command." );
+				}
+			}
+		}
+		catch(InvalidArgumentsException e){
+			System.out.println( e.getMessage() );
+		}
+	}
+	// exiting the game system and store all the game stats
+	private void exit(){
+		System.out.println();
+		currentPlayers.storeStats();
+		System.exit(0);
+	}	
+	public static void main(String[] args){
+		TicTacToe gameSystem = new TicTacToe();
+		gameSystem.run();
+	}
+}============================================
+src/Player.java
+15:51:03_Sunday_22_May_2016
+============================================
+/*
+ * Author: Hao Yu Yeh
+ * Date: 18/05/2016
+ * Comment: project C(TicTacToe game) in COMP90041
+ */
+
+import java.util.Comparator;
+
+public abstract class Player {
+	private String playerType, userName, familyName, givenName;
+	private int gamePlayed, gameWon, gameDrawn;
+	private double winRate, drawRate;
+	
+	public Player(){
+		playerType = "";
+		userName = "N/A";
+		familyName = "Doe";
+		givenName = "John";
+		gamePlayed = gameWon = gameDrawn = 0;
+		winRate = drawRate = 0.0;
+	}
+	/*
+	 * adding comparators to make sorting an array which consists of objects of
+	 * Player by the attributes of class Player possible
+	 */
+	// alphabetically ascending order
+	public static Comparator<Player> playerUserNameComparator = new Comparator<Player>() {
+		public int compare(Player p1, Player p2) {
+			return p1.getUserName().compareTo(p2.getUserName());
+		}
+	};
+	// descending order
+	public static Comparator<Player> playerWinRateComparator = new Comparator<Player>() {
+		public int compare(Player p1, Player p2) {
+			return Double.compare(p2.getWinRate(), p1.getWinRate());
+		}
+	};
+	// descending order
+	public static Comparator<Player> playerDrawRateComparator = new Comparator<Player>() {
+		public int compare(Player p1, Player p2) {
+			return Double.compare(p2.getDrawRate(), p1.getDrawRate());
+		}
+	};
+	/*
+	 * setting the user's type
+	 */
+	public void setPlayerType(String type) {
+		playerType = type;
+	}
+	/*
+	 * getting the user's type
+	 */
+	public String getPlayerType() {
+		return playerType;
+	}
+	/*
+	 * setting the user name
+	 */
+	public void setUserName(String name) {
+		userName = name;
+	}
+	/*
+	 * getting the user name
+	 */
+	public String getUserName() {
+		return userName;
+	}
+	/*
+	 * setting the family name
+	 */
+	public void setFamilyName(String name) {
+		familyName = name;
+	}
+	/*
+	 * getting the family name
+	 */
+	public String getFamilyName() {
+		return familyName;
+	}
+	/*
+	 * setting the given name
+	 */
+	public void setGivenName(String name) {
+		givenName = name;
+	}
+	/*
+	 * getting the given name
+	 */
+	public String getGivenName() {
+		return givenName;
+	}
+	/*
+	 * counting how many games the player has played. num: 0(clear the record)
+	 * or 1
+	 */
+	public void setGamePlayed(int num) {
+		if (num == CommonConstant.CLEAR) {
+			gamePlayed = CommonConstant.CLEAR;
+		} else {
+			gamePlayed += num;
+		}
+	}
+	/*
+	 * getting the number of game played
+	 */
+	public int getGamePlayed() {
+		return gamePlayed;
+	}
+	/*
+	 * counting how many games the player has won. num: 0(clear the record) or 1
+	 */
+	public void setGameWon(int num) {
+		if (num == CommonConstant.CLEAR) {
+			gameWon = CommonConstant.CLEAR;
+		} else {
+			gameWon += num;
+		}
+	}
+	/*
+	 * getting the number of wins
+	 */
+	public int getGameWon() {
+		return gameWon;
+	}
+	/*
+	 * counting how many draws the player has. num: 0(clear the record) or 1
+	 */
+	public void setGameDrawn(int num) {
+		if (num == CommonConstant.CLEAR) {
+			gameDrawn = CommonConstant.CLEAR;
+		} else {
+			gameDrawn += num;
+		}
+	}
+	/*
+	 * getting the number of draws
+	 */
+	public int getGameDrawn() {
+		return gameDrawn;
+	}
+	/*
+	 * setting the rate of winning
+	 */
+	public void setWinRate(double num) {
+		winRate = num;
+	}
+	/*
+	 * getting the rate of winning
+	 */
+	public double getWinRate() {
+		return winRate;
+	}
+	/*
+	 * setting the rate of draws
+	 */
+	public void setDrawRate(double num) {
+		drawRate = num;
+	}
+	/*
+	 * getting the rate of draw
+	 */
+	public double getDrawRate() {
+		return drawRate;
+	}
+	/*
+	 * making movements
+	 */
+	public abstract Move makeMove(char[][] gameBoard);
+}
+============================================
+src/ErrorMessage.java
+15:51:03_Sunday_22_May_2016
+============================================
+/*
+ * Author: Hao Yu Yeh
+ * Date: 18/05/2016
+ * Comment: project C(TicTacToe game) in COMP90041
+ */
+
+public class ErrorMessage {
+	// for class TicTacToe
+	public final static String WRONGUSER = "Player does not exist.";
+	// for class PlayerManager
+	public final static String EXCEEDMAX = "Already reach the limit of maximun players(" +
+										   CommonConstant.MAXPLAYERS + ").";
+	public final static String NOTEXIST = "The player does not exist.";
+	public final static String EXISTALREADY = "The username has been used already.";	
+	// for class GameManager
+	public final static String OCCUPIEDCELL = "Invalid move. The cell has been occupied.";
+	public final static String OUTOFBOUNDARY = "Invalid move. You must place at a cell within "
+											   + "{0,1,2} {0,1,2}.";
+}
+============================================
+src/InvalidArgumentsException.java
+15:51:03_Sunday_22_May_2016
+============================================
+/*
+ * Author: Hao Yu Yeh
+ * Date: 18/05/2016
+ * Comment: project C(TicTacToe game) in COMP90041
+ */
+
+public class InvalidArgumentsException extends Exception{
+	private static final long serialVersionUID = 1L;
+	
+	public InvalidArgumentsException(){
+		super("InvalidArguments");
+	}
+	public InvalidArgumentsException(String msg){
+		super(msg);
+	}
+}
+============================================
+src/Commands.java
+15:51:03_Sunday_22_May_2016
+============================================
+/*
+ * Author: Hao Yu Yeh
+ * Date: 18/05/2016
+ * Comment: project C(TicTacToe game) in COMP90041
+ */
+
+public class Commands {
+	public final static String ADDPLAYER = "addplayer", ADDAIPLAYER = "addaiplayer";
+	public final static String EDITPLAYER = "editplayer", DELETEPLAYER = "removeplayer";
+	public final static String RESETSTATS = "resetstats", DISPLAYPLAYER = "displayplayer";
+	public final static String SHOWRANKING = "rankings";
+	public final static String PLAY = "playgame", EXIT = "exit";
+}
+============================================
+src/Move.java
+15:51:03_Sunday_22_May_2016
+============================================
+/*
+ * Author: Hao Yu Yeh
+ * Date: 18/05/2016
+ * Comment: project C(TicTacToe game) in COMP90041
+ */
+
+public class Move {
+	private int rowOfMove,colOfMove;
+	
+	public Move(){
+		rowOfMove = 0;
+		colOfMove = 0;
+	}
+	public Move(int row, int col){
+		rowOfMove = row;
+		colOfMove = col;
+	}
+	/*
+	 * get row number of move
+	 */
+	public int getRow(){
+		return rowOfMove;
+	}
+	/*
+	 * set row number of move
+	 */
+	public void setRow(int row){
+		rowOfMove = row;
+	}
+	/*
+	 * get col number of move
+	 */
+	public int getColumn(){
+		return colOfMove;
+	}
+	/*
+	 * set col number of move
+	 */
+	public void setColumn(int col){
+		colOfMove = col;
+	}
+}
+============================================
+src/HumanPlayer.java
+15:51:03_Sunday_22_May_2016
+============================================
+/*
+ * Author: Hao Yu Yeh
+ * Date: 18/05/2016
+ * Comment: project C(TicTacToe game) in COMP90041
+ */
+
+public class HumanPlayer extends Player{
+	public HumanPlayer() {
+		super();
+	}
+	public Move makeMove(char[][] gameBoard){
+		Move move = new Move();
+		int row = 0, col = 0;
+		row = TicTacToe.keyboard.nextInt();
+		col = TicTacToe.keyboard.nextInt();
+		move.setRow(row);
+		move.setColumn(col);
+		// clear the command buffer
+		TicTacToe.keyboard.nextLine();
+		return move;
+	}
+}
